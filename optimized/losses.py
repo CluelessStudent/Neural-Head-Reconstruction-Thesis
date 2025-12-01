@@ -269,10 +269,10 @@ def multi_view_loss(
         Tuple of (total_loss, loss_dict)
     """
     num_views = len(rendered_views)
-    total_photo_loss = 0
+    total_photo_loss = torch.tensor(0.0, device=rendered_views[0].device)
     
     for rendered, target in zip(rendered_views, target_views):
-        total_photo_loss = total_photo_loss + photometric_loss(rendered, target, ssim_weight)
+        total_photo_loss += photometric_loss(rendered, target, ssim_weight)
     
     total_photo_loss = total_photo_loss / num_views
     

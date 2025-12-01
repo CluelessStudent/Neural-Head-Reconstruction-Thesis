@@ -82,6 +82,17 @@ def save_visualization(
     cv2.imwrite(f"{output_dir}/step_{step:05d}.png", grid)
 
 
+# Default camera parameters
+DEFAULT_YAW_ANGLES = [0.4, -0.4, 0.4, -0.4]  # Views: top-right, top-left, bottom-right, bottom-left
+DEFAULT_PITCH_ANGLES = [0.25, 0.25, -0.25, -0.25]
+DEFAULT_FOCAL_LENGTH = 400.0
+DEFAULT_INIT_SCALE = 70.0
+
+# Animation parameters for visualization
+ROTATION_SPEED = 0.02  # Radians per step
+ROTATION_AMPLITUDE = 0.6  # Maximum rotation angle
+
+
 def train(
     image_paths: list = None,
     canvas_size: int = 256,
@@ -126,16 +137,16 @@ def train(
     print(f"Initializing {initial_points} Gaussian points...")
     points = GaussianPoints(
         num_points=initial_points,
-        init_scale=70.0,
+        init_scale=DEFAULT_INIT_SCALE,
         device=device
     )
     
     # Initialize learnable camera
     camera = LearnableCamera(
         num_views=4,
-        initial_yaw=[0.4, -0.4, 0.4, -0.4],
-        initial_pitch=[0.25, 0.25, -0.25, -0.25],
-        initial_focal_length=400.0,
+        initial_yaw=DEFAULT_YAW_ANGLES,
+        initial_pitch=DEFAULT_PITCH_ANGLES,
+        initial_focal_length=DEFAULT_FOCAL_LENGTH,
         device=device
     )
     
@@ -262,7 +273,7 @@ def train(
         if step % visualize_interval == 0:
             with torch.no_grad():
                 # Render a spinning novel view
-                angle = math.sin(step * 0.02) * 0.6
+                angle = math.sin(step * ROTATION_SPEED) * ROTATION_AMPLITUDE
                 novel_view = render_fast(
                     xyz, rgb, opacity, scale,
                     torch.tensor(angle, device=device),

@@ -11,6 +11,9 @@ import torch
 import torch.nn as nn
 from typing import Optional, Tuple
 
+# Constant for numerical stability
+EPS = 1e-8
+
 
 class ProgressiveTraining:
     """
@@ -124,7 +127,7 @@ class ProgressiveTraining:
             return xyz, rgb, opacity, scale
         
         # Compute average gradient per point
-        avg_gradient = self.xyz_gradient_accum / (self.gradient_count + 1e-8)
+        avg_gradient = self.xyz_gradient_accum / (self.gradient_count + EPS)
         
         # Find points with high gradients
         high_grad_mask = avg_gradient > self.densify_grad_threshold
@@ -133,7 +136,7 @@ class ProgressiveTraining:
         max_new_points = min(
             self.max_points - current_points,
             high_grad_mask.sum().item(),
-            current_points // 4  # Don't more than 25% at once
+            current_points // 4  # Don't add more than 25% at once
         )
         
         if max_new_points <= 0:

@@ -11,6 +11,9 @@ This module provides rendering functions that correctly handle:
 import torch
 from typing import Tuple
 
+# Constants for numerical stability
+MIN_Z_CLAMP = 1.0  # Minimum Z value to prevent division by zero
+
 
 def project_3d(
     points_xyz: torch.Tensor,
@@ -63,7 +66,7 @@ def project_3d(
     
     # Perspective projection
     z_cam = z_final + z_offset
-    perspective = focal_length / torch.clamp(z_cam, min=1.0)
+    perspective = focal_length / torch.clamp(z_cam, min=MIN_Z_CLAMP)
     
     screen_x = x_final * perspective + cx
     screen_y = y_final * perspective + cy
@@ -133,7 +136,8 @@ def render_depth_aware(
     vis_point_scale = points_scale[visible_mask].squeeze(-1)
     
     # Sort by depth (back-to-front for proper alpha compositing)
-    # Larger z_depth values are further from camera, so sort descending
+    # In this coordinate system, larger z_final values are further from camera
+    # We sort descending to render far points first, then composite closer points on top
     sorted_indices = torch.argsort(vis_z, descending=True)
     
     vis_sx = vis_sx[sorted_indices]

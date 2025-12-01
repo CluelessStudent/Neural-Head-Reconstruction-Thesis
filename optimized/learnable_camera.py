@@ -116,9 +116,9 @@ class LearnableCamera(nn.Module):
             for i in range(self.num_views)
         ]
     
-    def parameters(self) -> List[nn.Parameter]:
-        """Return all learnable parameters."""
-        return [self._yaw, self._pitch, self._log_focal_length]
+    def parameters(self):
+        """Return iterator over all learnable parameters."""
+        return iter([self._yaw, self._pitch, self._log_focal_length])
     
     def get_angles_as_dict(self) -> dict:
         """
